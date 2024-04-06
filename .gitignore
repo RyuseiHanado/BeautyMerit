@@ -1,0 +1,6 @@
+config.ini
+client_secrets.json
+
+*.csv
+*.log
+*.exe
