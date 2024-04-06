@@ -1,0 +1,15 @@
+【このツールについて】
+・Beauty Meritからデータを取得し、Google Driveにアップロードします。
+・アップロードしたファイルは以下ローカルフォルダにも保存しています。
+　C:\Users\user\Desktop\INCEHAIR\Local2Drive\downloads
+　（必要に応じて適宜削除してください。）
+・エラーが起きた場合は以下フォルダにあるファイルを送付ください。
+　C:\Users\user\Desktop\INCEHAIR\Local2Drive\log
+
+
+【実行タイミング】
+・０時に自動実行されます。
+・前提としてログインがしておいてくだしい。
+・PCのスリープおよびPCの蓋を閉じても問題ございません。
+　（実行時に自動でスリープ解除します）
+
