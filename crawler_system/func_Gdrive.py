@@ -42,3 +42,20 @@ def upload_file(service, filepath, folder_id):
     except Exception as e:
         logging.error(f"ファイルのアップロードに失敗しました。エラー: {str(e)}")
         return None
+    
+def getFolderList(service):
+    directory_id = '1CRoGsJwiYKsFo4RtbLJP7ZDe2Ymy-NPd'
+    results = service.files().list(
+        q=f"'{directory_id}' in parents and "
+              "trashed = false",
+        pageSize=100,
+        fields="files(id, name)"
+    ).execute()
+    items = results.get('files', [])
+
+    if not items:
+        print('No files found.')
+    else:
+        print('Files:')
+        for item in items:
+            print(u'{0} ({1})'.format(item['name'], item['id']))
