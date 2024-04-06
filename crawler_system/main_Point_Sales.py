@@ -56,6 +56,7 @@ def main():
     # アップロード先フォルダID取得
     gdrive_config = config_values['Gdrive']
     upload_folder_id = gdrive_config['upload_folder_id']
+    screenshot_folder_id = gdrive_config['screenshot_folder_id']
     service = func_Gdrive.authenticate_gdrive()
 
 
@@ -120,7 +121,7 @@ def main():
         logging.info('==================================================')
         logging.info('売上データ取得、エクスポート、ファイルアップロード')
         logging.info('==================================================')
-        df_all_shops_sales = func_BM.collect_all_shop_data(shop_data, driver, target_date)
+        df_all_shops_sales = func_BM.collect_all_shop_data(shop_data, driver, target_date, service, screenshot_folder_id)
         if not df_all_shops_sales.empty:  # データフレームが空でない場合にcsv出力
             # csv出力
             salse_csv_filename = f'{downloads_path}/sales_tables_{login_id}_{target_date.strftime("%Y%m%d")}.csv'  # ファイル名をsales_tablesに変更

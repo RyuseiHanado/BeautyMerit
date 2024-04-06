@@ -1,18 +1,15 @@
 # coding: utf-8
 import time
 import logging
-from glob import glob
-import pandas as pd
 import sys
+import base64
+import os
+import shutil
 
-import chardet
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options as Options
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
-from bs4 import BeautifulSoup
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -24,6 +21,7 @@ import numpy as np
 # ローカルモジュールのインポート
 sys.path.append('../scripts')
 import func_line
+import func_Gdrive
 
 
 # ヘルパー関数
@@ -32,6 +30,26 @@ def wait_for_element(driver, by, value, timeout=10):
         EC.presence_of_element_located((by, value))
     )
 
+def createDirectory(dir_path):
+    os.mkdir(dir_path)
+def removeDirectory(dir_path):
+    shutil.rmtree(dir_path)
+def isExistsDirectory(dir_path):
+    return os.path.isdir(dir_path)
+def save_screenshot(driver, file_path, is_full_size=False):
+    # スクリーンショット設定
+    screenshot_config = {
+        # Trueの場合スクロールで隠れている箇所も含める、Falseの場合表示されている箇所のみ
+        "captureBeyondViewport": is_full_size,
+    }
+    # スクリーンショット取得
+    base64_image = driver.execute_cdp_cmd("Page.captureScreenshot", screenshot_config)
+
+    # ファイル書き出し
+    with open(file_path, "wb") as fh:
+        fh.write(base64.urlsafe_b64decode(base64_image["data"]))
+
+    return file_path
 
 # ========================================
 # ログイン
@@ -446,7 +464,7 @@ def parse_html_to_dataframe(html, shop_name):
 
     return df
 
-def collect_all_shop_data(shop_data, driver, target_date):
+def collect_all_shop_data(shop_data, driver, target_date, service, screenshot_folder_id):
     """
     各店舗の売上データを収集し、結合したデータフレームを返す。
 
@@ -466,6 +484,14 @@ def collect_all_shop_data(shop_data, driver, target_date):
     # 空のデータフレームを準備
     df_all_shops = pd.DataFrame()
 
+    # スクリーンショットを一時的に保存するディレクトリを作成
+    screenshot_dir_path = '../screenshot'
+    if not (isExistsDirectory(screenshot_dir_path)):
+        createDirectory(screenshot_dir_path)
+    # スクリーンショットのファイル名に使用
+    target_year = f'{target_date.strftime("%Y")}年'
+    target_month = f'{target_date.strftime("%-m")}月'
+
     for shop in shop_data:
         logging.info('------------------------------')
         try:
@@ -474,6 +500,16 @@ def collect_all_shop_data(shop_data, driver, target_date):
             driver.get(shop['url'])
             shop_name = get_shop_name(driver)
             logging.info(f'{shop_name}にログインしました。')
+
+            # 全画面スクリーンショット取得
+            file_path = f'../screenshot/{shop_name}_{target_date.strftime("%Y%m%d")}.png'
+            save_screenshot(driver, file_path, is_full_size=True)
+            # スクリーンショットをアップロード
+            shop_folder_id = func_Gdrive.getFolderList(service, screenshot_folder_id, shop_name)
+            year_folder_id = func_Gdrive.getFolderList(service, shop_folder_id, target_year)
+            month_folder_id = func_Gdrive.getFolderList(service, year_folder_id, target_month)
+            func_Gdrive.upload_file(service, file_path, month_folder_id)
+
             start_date, end_date = get_month_start_and_end_based_on_date(target_date)
             url = f'https://b-merit.jp/manage/analysis/account?periodType=0&startDay={start_date}&endDay={end_date}'
             logging.info(f"売上分析ページに移動します。{url}")
@@ -488,5 +524,8 @@ def collect_all_shop_data(shop_data, driver, target_date):
         # dfが空ではない場合、結合する
         if not df.empty:
             df_all_shops = pd.concat([df_all_shops, df], ignore_index=True)
+
+    # スクリーンショットを一時的に保存していたディレクトリを削除
+    removeDirectory(screenshot_dir_path)
 
     return df_all_shops

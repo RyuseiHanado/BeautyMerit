@@ -43,19 +43,41 @@ def upload_file(service, filepath, folder_id):
         logging.error(f"ファイルのアップロードに失敗しました。エラー: {str(e)}")
         return None
     
-def getFolderList(service):
-    directory_id = '1CRoGsJwiYKsFo4RtbLJP7ZDe2Ymy-NPd'
+def getFolderList(service, root_folder_id, folder_name):
+    # root_folder_id で特定のフォルダ内を検索
+    # mimeType=*** でフォルダのみを検索
+    # folder_name に一致するフォルダを検索
+    # ゴミ箱をは検索しない
     results = service.files().list(
-        q=f"'{directory_id}' in parents and "
-              "trashed = false",
-        pageSize=100,
+        q=f"'{root_folder_id}' in parents and "
+            "mimeType='application/vnd.google-apps.folder' and"
+            f"name = '{folder_name}' and "
+            "trashed = false",
+        pageSize=10,
         fields="files(id, name)"
     ).execute()
     items = results.get('files', [])
 
     if not items:
-        print('No files found.')
+        logging.info(f'{folder_name} フォルダが見つかりませんでした')
+        return createFolder(service, root_folder_id, folder_name)
     else:
-        print('Files:')
+        print('フォルダ一覧:')
         for item in items:
-            print(u'{0} ({1})'.format(item['name'], item['id']))
+            logging.info(u'{0} ({1})'.format(item['name'], item['id']))
+        return items[0]['id']
+
+def createFolder(service, root_folder_id, folder_name):
+    file_metadata = {
+        'name': folder_name,
+        'mimeType': 'application/vnd.google-apps.folder',
+        'parents': [root_folder_id]
+    }
+    folder = service.files().create(body=file_metadata,
+                                fields='id').execute()
+
+    #fieldに指定したidをfileから取得できる
+    logging.info(f'{folder_name} フォルダを作成')
+    folder_id = folder.get('id')
+    logging.info(f'Folder ID: %s' % folder.get('id'))
+    return folder_id
