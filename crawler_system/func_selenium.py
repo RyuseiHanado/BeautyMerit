@@ -43,5 +43,6 @@ def set_driver():
     driver = webdriver.Chrome(service=service, options=options)
     driver.implicitly_wait(10)
     driver.set_page_load_timeout(60)
+    driver.set_window_size(1980,1080)
 
     return driver
