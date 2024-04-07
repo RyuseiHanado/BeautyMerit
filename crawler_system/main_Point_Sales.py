@@ -111,9 +111,13 @@ def main():
             df_all_shops_point.to_csv(point_csv_filename, index=False, encoding='UTF-8')
             logging.info(f'ポイントcsv出力：{point_csv_filename}')
             # GDriveへアップロード
-            logging.info(f'GDriveへアップロード')
-            func_Gdrive.upload_file(service, point_csv_filename, upload_folder_id)
-            logging.info('ポイント利用情報用の取得、エクスポート、ファイルアップロードが完了しました。')
+            if not (func_Gdrive.isExistsFile(service, point_csv_filename, upload_folder_id)):
+                logging.info(f'GDriveへアップロード')
+                func_Gdrive.upload_file(service, point_csv_filename, upload_folder_id)
+                logging.info('ポイント利用情報用の取得、エクスポート、ファイルアップロードが完了しました。')
+            else:
+                logging.info('GDriveに同名のファイルが存在するためアップロードをキャンセルしました')
+
         else:
             logging.warning('ポイント利用情報用の取得するデータがありませんでした。')
 
@@ -128,9 +132,12 @@ def main():
             df_all_shops_sales.to_csv(salse_csv_filename, index=False, encoding='UTF-8')
             logging.info(f'売上csv出力：{salse_csv_filename}')
             # GDriveへアップロード
-            logging.info(f'GDriveへアップロード')
-            func_Gdrive.upload_file(service, salse_csv_filename, upload_folder_id)
-            logging.info('売上データ取得、エクスポート、ファイルアップロードが完了しました。')
+            if not (func_Gdrive.isExistsFile(service, salse_csv_filename, upload_folder_id)):
+                logging.info(f'GDriveへアップロード')
+                func_Gdrive.upload_file(service, salse_csv_filename, upload_folder_id)
+                logging.info('売上データ取得、エクスポート、ファイルアップロードが完了しました。')
+            else:
+                logging.info('GDriveに同名のファイルが存在するためアップロードをキャンセルしました')
         else:
             logging.warning('売上データの取得するデータがありませんでした。')
 

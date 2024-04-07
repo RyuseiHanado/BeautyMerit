@@ -15,6 +15,7 @@ config_values = func_common.read_config_file(config_file_path)
 
 # アップロード先フォルダID取得
 gdrive_config = config_values['Gdrive']
+upload_folder_id = gdrive_config['upload_folder_id']
 screenshot_folder_id = gdrive_config['screenshot_folder_id']
 service = func_Gdrive.authenticate_gdrive()
 
@@ -22,16 +23,19 @@ service = func_Gdrive.authenticate_gdrive()
 def main():
     print('statt')
 
-#     アップロード先フォルダID取得
-    gdrive_config = config_values['Gdrive']
-    upload_folder_id = gdrive_config['upload_folder_id']
-    service = func_Gdrive.authenticate_gdrive()
-
     csv_path = '../downloads/sample.txt'
 
+    # 「サンプルフォルダ」フォルダを検索（作成）し、sample.txt を保存
     folder_name = 'サンプルフォルダ'
-    folder_id = func_Gdrive.getFolderList(service, screenshot_folder_id, folder_name)
-    func_Gdrive.upload_file(service, csv_path, folder_id)
+    folder_id = func_Gdrive.getFolderList(service, folder_name, upload_folder_id)
+    isExists = func_Gdrive.isExistsFile(service, csv_path, folder_id)
+    if(isExists):
+        logging.info('サンプルフォルダが存在します')
+    else:
+        logging.info('サンプルフォルダが存在しません')
+        func_Gdrive.upload_file(service, csv_path, folder_id)
+
+
 
 if __name__ == "__main__":
     try:

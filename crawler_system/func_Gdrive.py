@@ -22,9 +22,9 @@ def authenticate_gdrive():
 
     return build(API_NAME, API_VERSION, credentials=creds)
 
-def upload_file(service, filepath, folder_id):
-    filename = os.path.basename(filepath)
-    media = MediaFileUpload(filepath)
+def upload_file(service, file_path, folder_id):
+    filename = os.path.basename(file_path)
+    media = MediaFileUpload(file_path)
     file_metadata = {
         'name': filename,
         'parents': [folder_id]
@@ -43,7 +43,7 @@ def upload_file(service, filepath, folder_id):
         logging.error(f"ファイルのアップロードに失敗しました。エラー: {str(e)}")
         return None
     
-def getFolderList(service, root_folder_id, folder_name):
+def getFolderList(service, folder_name, root_folder_id):
     # root_folder_id で特定のフォルダ内を検索
     # mimeType=*** でフォルダのみを検索
     # folder_name に一致するフォルダを検索
@@ -60,14 +60,30 @@ def getFolderList(service, root_folder_id, folder_name):
 
     if not items:
         logging.info(f'{folder_name} フォルダが見つかりませんでした')
-        return createFolder(service, root_folder_id, folder_name)
+        return createFolder(service, folder_name, root_folder_id)
     else:
         print('フォルダ一覧:')
         for item in items:
             logging.info(u'{0} ({1})'.format(item['name'], item['id']))
         return items[0]['id']
 
-def createFolder(service, root_folder_id, folder_name):
+def isExistsFile(service, file_path, root_folder_id):
+    file_name = os.path.basename(file_path)
+    logging.info(f'ファイル名: {file_name}')
+    # root_folder_id で特定のフォルダ内を検索
+    # file_name に一致するファイルを検索
+    # ゴミ箱をは検索しない
+    results = service.files().list(
+        q=f"'{root_folder_id}' in parents and "
+          f"name = '{file_name}' and "
+          "trashed = false",
+        pageSize=10,
+        fields="files(id, name)"
+    ).execute()
+    items = results.get('files', [])
+    return items
+
+def createFolder(service, folder_name, root_folder_id):
     file_metadata = {
         'name': folder_name,
         'mimeType': 'application/vnd.google-apps.folder',

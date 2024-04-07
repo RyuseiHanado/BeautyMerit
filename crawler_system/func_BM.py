@@ -489,8 +489,10 @@ def collect_all_shop_data(shop_data, driver, target_date, service, screenshot_fo
     if not (isExistsDirectory(screenshot_dir_path)):
         createDirectory(screenshot_dir_path)
     # スクリーンショットのファイル名に使用
-    target_year = f'{target_date.strftime("%Y")}年'
-    target_month = f'{target_date.strftime("%-m")}月'
+    today = datetime.now()
+    target_year = f'{today.strftime("%Y")}年'
+    target_month = f'{today.strftime("%-m")}月'
+    datetime_string = f'{today.strftime("%Y%m%d")}_{today.strftime("%H%M")}'
 
     for shop in shop_data:
         logging.info('------------------------------')
@@ -502,12 +504,12 @@ def collect_all_shop_data(shop_data, driver, target_date, service, screenshot_fo
             logging.info(f'{shop_name}にログインしました。')
 
             # 全画面スクリーンショット取得
-            file_path = f'../screenshot/{shop_name}_{target_date.strftime("%Y%m%d")}.png'
+            file_path = f'../screenshot/{shop_name}_{datetime_string}.png'
             save_screenshot(driver, file_path, is_full_size=True)
             # スクリーンショットをアップロード
-            shop_folder_id = func_Gdrive.getFolderList(service, screenshot_folder_id, shop_name)
-            year_folder_id = func_Gdrive.getFolderList(service, shop_folder_id, target_year)
-            month_folder_id = func_Gdrive.getFolderList(service, year_folder_id, target_month)
+            shop_folder_id = func_Gdrive.getFolderList(service, shop_name, screenshot_folder_id)
+            year_folder_id = func_Gdrive.getFolderList(service, target_year, shop_folder_id)
+            month_folder_id = func_Gdrive.getFolderList(service, target_month, year_folder_id)
             func_Gdrive.upload_file(service, file_path, month_folder_id)
 
             start_date, end_date = get_month_start_and_end_based_on_date(target_date)
