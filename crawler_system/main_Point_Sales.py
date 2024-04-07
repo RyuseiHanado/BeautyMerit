@@ -47,7 +47,7 @@ def main():
     func_common.setup_logging()
 
     # 仮想ディスプレイ環境を構築
-    display = pyvirtualdisplay.Display(visible=0, size=(1024, 768))
+    display = pyvirtualdisplay.Display(visible=0, size=(1980, 1080))
     display.start()
 
     config_file_path = '../config/config.ini'  # config.iniファイルのパスを適切に設定してください
@@ -82,9 +82,7 @@ def main():
         password = bm_config['password']
 
         driver = func_selenium.set_driver()
-        logging.info('kikk 11 --------')
         driver.get(base_url)
-        logging.info('kikk 12 --------')
         logging.info(f"アカウント名：{login_id} でログインします")
         func_BM.perform_login(driver, login_id, password)
 
