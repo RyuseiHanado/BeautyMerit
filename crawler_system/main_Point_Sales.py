@@ -31,6 +31,9 @@ import func_BM
 import func_line
 import func_Gdrive
 
+# 仮想ディスプレイで使用
+import pyvirtualdisplay
+
 
 # In[3]:
 
@@ -43,9 +46,14 @@ def main():
     # コード
     func_common.setup_logging()
 
+    # 仮想ディスプレイ環境を構築
+    display = pyvirtualdisplay.Display(visible=0, size=(1024, 768))
+    display.start()
+
     config_file_path = '../config/config.ini'  # config.iniファイルのパスを適切に設定してください
     config_values = func_common.read_config_file(config_file_path)
-    account_keys = ['Beauty_Merit_Account1', 'Beauty_Merit_Account2', 'Beauty_Merit_Account3']
+    # account_keys = ['Beauty_Merit_Account1', 'Beauty_Merit_Account2', 'Beauty_Merit_Account3']
+    account_keys = ['Beauty_Merit_Account1']
     downloads_path = '../downloads'
     base_url = "https://b-merit.jp/groupmanage/login/?redirect=1"
 
@@ -74,7 +82,9 @@ def main():
         password = bm_config['password']
 
         driver = func_selenium.set_driver()
+        logging.info('kikk 11 --------')
         driver.get(base_url)
+        logging.info('kikk 12 --------')
         logging.info(f"アカウント名：{login_id} でログインします")
         func_BM.perform_login(driver, login_id, password)
 
@@ -104,7 +114,8 @@ def main():
         logging.info('==================================================')
         logging.info('ポイント利用情報用の取得、エクスポート、ファイルアップロード')
         logging.info('==================================================')
-        df_all_shops_point = func_BM.process_shop_data(shop_data, driver, line_access_token, target_date)
+        # ------- df_all_shops_point = func_BM.process_shop_data(shop_data, driver, line_access_token, target_date)
+        df_all_shops_point = func_BM.process_shop_data([shop_data[0]], driver, line_access_token, target_date)
         if not df_all_shops_point.empty:  # データフレームが空でない場合にcsv出力
             # point_csv_filename = f'{downloads_path}/point_tables_{login_id}_{today}.csv'
             point_csv_filename = f'{downloads_path}/point_tables_{login_id}_{target_date.strftime("%Y%m%d")}.csv'  # ここ追加した。削除必要
@@ -125,7 +136,8 @@ def main():
         logging.info('==================================================')
         logging.info('売上データ取得、エクスポート、ファイルアップロード')
         logging.info('==================================================')
-        df_all_shops_sales = func_BM.collect_all_shop_data(shop_data, driver, target_date, service, screenshot_folder_id)
+        # ------- df_all_shops_sales = func_BM.collect_all_shop_data(shop_data, driver, target_date, service, screenshot_folder_id)
+        df_all_shops_sales = func_BM.collect_all_shop_data([shop_data[0]], driver, target_date, service, screenshot_folder_id)
         if not df_all_shops_sales.empty:  # データフレームが空でない場合にcsv出力
             # csv出力
             salse_csv_filename = f'{downloads_path}/sales_tables_{login_id}_{target_date.strftime("%Y%m%d")}.csv'  # ファイル名をsales_tablesに変更
