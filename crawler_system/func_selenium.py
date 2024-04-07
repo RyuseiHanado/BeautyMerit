@@ -35,14 +35,15 @@ def set_driver():
     prefs['download.prompt_for_download'] = False # ダウンロードあり
     prefs['download.directory_upgrade'] = True # ダウンロードあり
     options.add_experimental_option('prefs', prefs)
-
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
+    options.add_argument('--headless') # スクリーンショットの範囲が端末に依存しないようにChromeを表示しない
 
     service = Service(ChromeDriverManager().install())
     # service = Service(ChromeDriverManager("114.0.5735.16").install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.implicitly_wait(10)
     driver.set_page_load_timeout(60)
-    driver.set_window_size(1980,1080)
+    driver.set_window_size(1800,1080) # スクリーンショットの範囲を調整
 
     return driver
