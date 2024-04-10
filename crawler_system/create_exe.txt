@@ -1,0 +1,2 @@
+# crawler_systemディレクトリ内で下記コマンドを実行
+pyinstaller -y --distpath ../exe ./main_Point_Sales.py --onefile --clean
